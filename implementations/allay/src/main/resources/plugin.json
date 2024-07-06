@@ -1,0 +1,12 @@
+{
+  "entrance": "org.allaymc.bluemap.AllayPlugin",
+  "name": "BlueMap",
+  "description": "A 3d-map of your Minecraft worlds view-able in your browser using three.js (WebGL)",
+  "authors": [
+    "Blue (TBlueF / Lukas Rieger)",
+    "daoge_cmd"
+  ],
+  "website": "https://github.com/BlueMap-Minecraft",
+  "version": "${version}",
+  "order": "START_UP"
+}

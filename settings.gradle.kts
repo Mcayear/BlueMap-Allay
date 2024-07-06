@@ -16,6 +16,7 @@ includeBuild("implementations/cli")
 includeBuild("implementations/spigot")
 includeBuild("implementations/paper")
 //includeBuild("implementations/sponge")
+includeBuild("implementations/allay")
 
 // legacy support
 //includeBuild("implementations/forge-1.18.1")
