@@ -1,5 +1,5 @@
 {
-  "entrance": "org.allaymc.bluemap.AllayPlugin",
+  "entrance": "de.bluecolored.bluemap.allay.AllayPlugin",
   "name": "BlueMap",
   "description": "A 3d-map of your Minecraft worlds view-able in your browser using three.js (WebGL)",
   "authors": [
