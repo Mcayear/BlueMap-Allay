@@ -1,0 +1,11 @@
+{
+  "entrance": ".AllayPlugin",
+  "name": "BlueMap",
+  "description": "${description}",
+  "authors": [
+    "Mcayear"
+  ],
+  "version": "${version}",
+  "dependencies": [],
+  "website": "https://github.com/BlueMap-Minecraft"
+}

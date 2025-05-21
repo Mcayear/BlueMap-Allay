@@ -40,7 +40,7 @@ Here you can see how many servers are using BlueMap:
 [![BlueMap Graph](https://metrics.bluecolored.de/bluemap/graph.php?1)](https://metrics.bluecolored.de/)
 
 ## Development
-### Clone
+### Clone0
 If you have git installed, simply use the command `git clone --recursive https://github.com/BlueMap-Minecraft/BlueMap.git` to clone BlueMap.
 
 ### Build

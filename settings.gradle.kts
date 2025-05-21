@@ -22,13 +22,14 @@ includeBuild("api")
 include(":core")
 include(":common")
 
-implementation("cli")
-implementation("fabric")
-implementation("forge")
-implementation("neoforge")
-implementation("paper")
+//implementation("cli")
+//implementation("fabric")
+//implementation("forge")
+//implementation("neoforge")
+//implementation("paper")
 implementation("spigot")
-implementation("sponge")
+//implementation("sponge")
+implementation("allaymc")
 
 fun implementation(name: String) {
     val project = ":$name"
