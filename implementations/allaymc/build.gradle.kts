@@ -16,6 +16,7 @@ repositories {
     maven("https://jitpack.io/")
     maven("https://repo.opencollab.dev/maven-releases/") // AllayMC 仓库
     maven("https://repo.opencollab.dev/maven-snapshots/")// AllayMC 仓库
+    maven("https://storehouse.okaeri.eu/repository/maven-public/")
     // 如果 BlueMap 有自己的 Maven 仓库，也需要添加
     // e.g., maven("https://repo.bluecolored.de/releases")
 }
@@ -77,37 +78,16 @@ tasks.processResources {
             "project_group" to project.group // 将 group 传递给 plugin.json
         )
     }
-    // 从 AllayMC 示例复制并调整 plugin.json 的处理方式
-    // 如果你的 plugin.json 文件结构更简单，可以直接使用 expand
-    // 如果需要更复杂的文本替换，可以使用 doLast：
+
     doLast {
         val origin = project.file("src/main/resources/plugin.json") // 确保路径正确
         val processed = layout.buildDirectory.file("resources/main/plugin.json").get().asFile
 
-        // 如果 plugin.json 模板中使用了 ${project_group} 和 ${entrance_class_name}
-        // 并且你的 "entrance" 字段是 "${project_group}.${entrance_class_name}"
-        // 或者，如果 "entrance" 字段模板是 "your.fixed.package.${entrance_class_name_suffix}"
-        // 你需要相应调整这里的替换逻辑
-        // 以下是一个更通用的替换，假设 plugin.json 中有 ${version}, ${description}, ${entrance}
-
         var content = origin.readText()
         content = content.replace("\${version}", project.version.toString())
         content = content.replace("\${description}", project.description.toString())
-        // 假设你的 plugin.json 中 entrance 字段是类似 "${group}.your.main.Class"
-        // 并且你在上面 expand 中定义了 "main_class_path" to "your.main.Class"
-        // content = content.replace("\${group}", project.group.toString())
-        // content = content.replace("\${main_class_path}", "your.main.Class") // 或者从属性获取
 
-        // 基于AllayMC示例的入口替换方式：
-        // 假设 plugin.json 中 entrance 字段是： "entrance": ".YourMainClass"
-        // 那么替换逻辑是：
-        val mainClassSimpleName = "allay.AllayBlueMapPlugin" // 你的主类的简单名称或相对于group的路径
         content = content.replaceFirst("\"entrance\": \".", "\"entrance\": \"" + project.group.toString() + ".")
-            .replaceFirst("\"", mainClassSimpleName + "\"") // 这是一个简化的示例，你需要确保这个替换正确
-
-        // 更稳妥的方式是直接在 plugin.json 模板中使用 `${full_entrance_class}`
-        // 然后在 expand 中: "full_entrance_class" to "${project.group}.allay.AllayBlueMapPlugin"
-        // 这种方式下，这里的 doLast 逻辑会更简单，只需替换 version 和 description
 
         processed.writeText(content)
     }
