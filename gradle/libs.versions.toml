@@ -32,6 +32,8 @@ junit-core = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit"
 junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 lombok = { module = "org.projectlombok:lombok", version = "1.18.32" }
 lz4 = { module = "org.lz4:lz4-java", version = "1.8.0" }
+# Network protocol
+network = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta6-SNAPSHOT" }
 
 [plugins]
 cursegradle = { id = "com.matthewprenger.cursegradle", version = "1.4.0" }

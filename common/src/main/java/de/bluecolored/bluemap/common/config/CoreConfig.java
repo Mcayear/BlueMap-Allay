@@ -34,6 +34,8 @@ public class CoreConfig {
 
     private boolean acceptDownload = false;
 
+    private boolean leveldbWorld = false;
+
     private int renderThreadCount = 1;
 
     private boolean metrics = true;
@@ -46,6 +48,10 @@ public class CoreConfig {
 
     public boolean isAcceptDownload() {
         return acceptDownload;
+    }
+
+    public boolean isLeveldbWorld() {
+        return leveldbWorld;
     }
 
     public int getRenderThreadCount() {

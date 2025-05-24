@@ -2,6 +2,14 @@ plugins {
     bluemap.base
 }
 
+repositories {
+    mavenCentral()
+    maven("https://jitpack.io/")
+    maven("https://repo.opencollab.dev/maven-releases/")
+    maven("https://repo.opencollab.dev/maven-snapshots/")
+    maven("https://storehouse.okaeri.eu/repository/maven-public/")
+}
+
 dependencies {
     api ( "de.bluecolored:bluemap-api" )
 
@@ -12,6 +20,9 @@ dependencies {
     api ( libs.configurate.hocon )
     api ( libs.configurate.gson )
     api ( libs.lz4 )
+
+    // Network protocol
+    compileOnly ( libs.network )
 
     compileOnly ( libs.jetbrains.annotations )
     compileOnly ( libs.lombok )

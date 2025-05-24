@@ -24,13 +24,6 @@
  */
 package de.bluecolored.bluemap.common;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
-import de.bluecolored.bluemap.api.gson.MarkerGson;
-import de.bluecolored.bluemap.api.markers.MarkerSet;
 import de.bluecolored.bluemap.common.config.ConfigurationException;
 import de.bluecolored.bluemap.common.config.MapConfig;
 import de.bluecolored.bluemap.common.config.storage.StorageConfig;
@@ -46,16 +39,12 @@ import de.bluecolored.bluemap.core.storage.Storage;
 import de.bluecolored.bluemap.core.util.FileHelper;
 import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.world.World;
+import de.bluecolored.bluemap.core.world.leveldb.LevelDBWorld;
 import de.bluecolored.bluemap.core.world.mca.MCAWorld;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.gson.GsonConfigurationLoader;
-import org.spongepowered.configurate.loader.HeaderMode;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -224,7 +213,11 @@ public class BlueMapService implements Closeable {
         if (world == null) {
             try {
                 Logger.global.logDebug("Loading world " + worldId + " ...");
-                world = MCAWorld.load(worldFolder, dimension, loadDataPack(worldFolder));
+                if (config.getCoreConfig().isLeveldbWorld()) {
+                    world = LevelDBWorld.load(worldFolder, dimension);
+                } else {
+                    world = MCAWorld.load(worldFolder, dimension, loadDataPack(worldFolder));
+                }
                 worlds.put(worldId, world);
             } catch (IOException ex) {
                 throw new ConfigurationException(
