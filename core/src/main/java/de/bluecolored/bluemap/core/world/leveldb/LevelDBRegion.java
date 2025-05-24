@@ -7,6 +7,8 @@ import de.bluecolored.bluemap.core.logger.Logger;
 import org.iq80.leveldb.DB;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +30,28 @@ public class LevelDBRegion<T> implements Region<T> {
     
     // 缓存区域内已知存在的区块坐标
     private Set<Vector2i> existingChunks;
+    
+    // LevelDB键类型
+    private enum LevelDBKey {
+        // 区块数据前缀 (47)
+        CHUNK_DATA((byte) 47),
+        // 区块版本 (118)
+        VERSION((byte) 118);
+        
+        private final byte prefix;
+        
+        LevelDBKey(byte prefix) {
+            this.prefix = prefix;
+        }
+        
+        public byte[] createKey(int chunkX, int chunkZ) {
+            ByteBuffer buffer = ByteBuffer.allocate(9).order(ByteOrder.LITTLE_ENDIAN);
+            buffer.put(prefix);
+            buffer.putInt(chunkX);
+            buffer.putInt(chunkZ);
+            return buffer.array();
+        }
+    }
     
     public LevelDBRegion(ChunkLoader<T> chunkLoader, DB db, int regionX, int regionZ) {
         this.chunkLoader = chunkLoader;
@@ -91,16 +115,24 @@ public class LevelDBRegion<T> implements Region<T> {
      * @return 如果区块存在则返回true
      */
     private boolean isChunkExistInDB(int x, int z) {
-        // 实际实现需要检查LevelDB中的区块键
-        // 这里暂时返回true作为占位符
-        // 在实际实现时，应该检查特定的数据键
+        // 检查区块数据是否存在
         try {
-            // 构建LevelDB中区块数据的键
-            byte[] key = createChunkKey(x, z);
-            byte[] value = db.get(key);
+            // 首先检查区块版本数据是否存在
+            byte[] versionKey = LevelDBKey.VERSION.createKey(x, z);
+            byte[] versionValue = db.get(versionKey);
             
-            if (value != null) {
-                // 缓存存在的区块信息
+            if (versionValue != null) {
+                // 版本存在，说明区块数据应该存在
+                existingChunks.add(new Vector2i(x, z));
+                return true;
+            }
+            
+            // 如果版本不存在，检查区块数据是否存在
+            byte[] dataKey = LevelDBKey.CHUNK_DATA.createKey(x, z);
+            byte[] dataValue = db.get(dataKey);
+            
+            if (dataValue != null) {
+                // 区块数据存在
                 existingChunks.add(new Vector2i(x, z));
                 return true;
             }
@@ -110,41 +142,5 @@ public class LevelDBRegion<T> implements Region<T> {
             Logger.global.logDebug("Error checking chunk existence at (%d, %d): %s".formatted(x, z, e.getMessage()));
             return false;
         }
-    }
-    
-    /**
-     * 创建用于访问LevelDB中区块数据的键
-     * 
-     * @param x 区块X坐标
-     * @param z 区块Z坐标
-     * @return 键字节数组
-     */
-    private byte[] createChunkKey(int x, int z) {
-        // 实际键的格式取决于LevelDB的具体实现
-        // 这里只是一个占位符
-        // 实际上需要查看LevelDB格式的文档或者分析现有键
-        
-        // 按照一些LevelDB世界实现，键可能类似于：
-        // 48 | x | z | 47
-        // 其中48和47是特定标记
-        
-        byte[] key = new byte[10];
-        // 示例键格式，实际实现需要根据具体的LevelDB格式
-        key[0] = 48; // 区块数据标识符
-        
-        // 将x和z坐标编码到键中
-        key[1] = (byte)(x & 0xFF);
-        key[2] = (byte)((x >> 8) & 0xFF);
-        key[3] = (byte)((x >> 16) & 0xFF);
-        key[4] = (byte)((x >> 24) & 0xFF);
-        
-        key[5] = (byte)(z & 0xFF);
-        key[6] = (byte)((z >> 8) & 0xFF);
-        key[7] = (byte)((z >> 16) & 0xFF);
-        key[8] = (byte)((z >> 24) & 0xFF);
-        
-        key[9] = 47; // 结束标识符
-        
-        return key;
     }
 } 

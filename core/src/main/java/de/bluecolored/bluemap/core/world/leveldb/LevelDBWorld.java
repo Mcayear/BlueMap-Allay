@@ -186,11 +186,43 @@ public class LevelDBWorld implements World {
      */
     private class LevelDBChunkLoader implements ChunkLoader<Chunk> {
         
+        // LevelDB键类型前缀
+        private static final byte CHUNK_DATA_PREFIX = 47;
+        
+        /**
+         * 创建区块数据键
+         */
+        private byte[] createChunkKey(int x, int z) {
+            byte[] key = new byte[9];
+            key[0] = CHUNK_DATA_PREFIX;
+            
+            // 写入X坐标（小端序）
+            key[1] = (byte) (x & 0xFF);
+            key[2] = (byte) ((x >> 8) & 0xFF);
+            key[3] = (byte) ((x >> 16) & 0xFF);
+            key[4] = (byte) ((x >> 24) & 0xFF);
+            
+            // 写入Z坐标（小端序）
+            key[5] = (byte) (z & 0xFF);
+            key[6] = (byte) ((z >> 8) & 0xFF);
+            key[7] = (byte) ((z >> 16) & 0xFF);
+            key[8] = (byte) ((z >> 24) & 0xFF);
+            
+            return key;
+        }
+        
         @Override
         public Chunk loadChunk(int x, int z) throws IOException {
-            // 从LevelDB中加载区块数据并创建Chunk对象
-            // 这需要详细了解LevelDB区块格式
-            // 这里只是一个简单的占位实现
+            // 从LevelDB中读取区块数据
+            byte[] chunkKey = createChunkKey(x, z);
+            byte[] chunkData = db.get(chunkKey);
+            
+            if (chunkData == null) {
+                // 区块不存在
+                return erroredChunk();
+            }
+            
+            // 创建区块对象并解析数据
             return new LevelDBChunk(x, z, db);
         }
         
