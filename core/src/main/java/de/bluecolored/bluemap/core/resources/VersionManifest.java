@@ -45,7 +45,8 @@ import java.util.Map;
 @SuppressWarnings({"FieldMayBeFinal", "unused"})
 public class VersionManifest {
 
-    public static final String DOMAIN = "https://piston-meta.mojang.com/";
+//    public static final String DOMAIN = "https://piston-meta.mojang.com/";
+    public static final String DOMAIN = "https://piston-mojang.deno.dev/";
     public static final String MANIFEST_URL = DOMAIN + "mc/game/version_manifest.json";
 
     private static final int CONNECTION_TIMEOUT = 10000;
