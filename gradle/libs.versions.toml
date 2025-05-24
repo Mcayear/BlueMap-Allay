@@ -5,6 +5,7 @@ bstats = "2.2.1"
 configurate = "4.1.2"
 junit = "5.8.2"
 spongegradle = "2.2.0"
+leveldb = "1.0.1"
 
 [libraries]
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
@@ -34,6 +35,10 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.32" }
 lz4 = { module = "org.lz4:lz4-java", version = "1.8.0" }
 # Network protocol
 network = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta6-SNAPSHOT" }
+
+# LevelDB
+leveldb = { group = "com.hivemc.leveldb", name = "leveldb", version.ref = "leveldb" }
+leveldb-api = { group = "com.hivemc.leveldb", name = "leveldb-api", version.ref = "leveldb" }
 
 [plugins]
 cursegradle = { id = "com.matthewprenger.cursegradle", version = "1.4.0" }

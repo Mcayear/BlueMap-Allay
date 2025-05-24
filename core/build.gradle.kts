@@ -23,6 +23,8 @@ dependencies {
 
     // Network protocol
     compileOnly ( libs.network )
+    compileOnly ( libs.leveldb )
+    compileOnly ( libs.leveldb.api )
 
     compileOnly ( libs.jetbrains.annotations )
     compileOnly ( libs.lombok )

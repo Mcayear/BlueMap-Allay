@@ -12,6 +12,8 @@ import lombok.ToString;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -28,9 +30,13 @@ public class LevelDBWorld implements World {
 
     private final String id;
     private static final String FILE_LEVEL_DAT = "level.dat";
+    private static final String DIR_DB = "db";
+
     private final DimensionType dimensionType;
     private final Vector3i spawnPoint;
     private final LevelDBData levelData;
+    private final DB db;
+    private final ChunkGrid<Chunk> chunkGrid;
 
     public LevelDBWorld(Path worldFolder, Key dimension, LevelDBData levelData) {
         this.id = World.id(worldFolder, dimension);
@@ -42,6 +48,19 @@ public class LevelDBWorld implements World {
                 levelData.getData().getSpawnY(),
                 levelData.getData().getSpawnZ()
         );
+        var dbFolder = worldFolder.resolve(DIR_DB).toFile();
+        try {
+            if (!dbFolder.exists() && !dbFolder.mkdirs()) {
+                throw new WorldStorageException("Failed to create world database directory!");
+            }
+            org.iq80.leveldb.Options options = new org.iq80.leveldb.Options()
+                    .createIfMissing(false)
+                    .compressionType(org.iq80.leveldb.CompressionType.ZLIB_RAW).blockSize(64 * 1024);
+            this.db = new Iq80DBFactory().open(dbFolder, options);
+            this.chunkGrid = new ChunkGrid<>(new LevelDBChunkLoader(), this.db);
+        } catch (IOException e) {
+            throw new WorldStorageException(e);
+        }
     }
 
     @Override
@@ -51,12 +70,12 @@ public class LevelDBWorld implements World {
 
     @Override
     public Grid getChunkGrid() {
-        return null;
+        return chunkGrid.getChunkGrid();
     }
 
     @Override
     public Grid getRegionGrid() {
-        return null;
+        return chunkGrid.getRegionGrid();
     }
 
     /**
@@ -67,7 +86,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public Chunk getChunkAtBlock(int x, int z) {
-        return null;
+        return getChunk(x >> 4, z >> 4);
     }
 
     /**
@@ -78,7 +97,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public Chunk getChunk(int x, int z) {
-        return null;
+        return chunkGrid.getChunk(x, z);
     }
 
     /**
@@ -89,7 +108,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public Region<Chunk> getRegion(int x, int z) {
-        return null;
+        return chunkGrid.getRegion(x, z);
     }
 
     /**
@@ -98,7 +117,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public Collection<Vector2i> listRegions() {
-        return List.of();
+        return chunkGrid.listRegions();
     }
 
     /**
@@ -110,7 +129,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public void preloadRegionChunks(int x, int z, Predicate<Vector2i> chunkFilter) {
-
+        chunkGrid.preloadRegionChunks(x, z, chunkFilter);
     }
 
     /**
@@ -118,7 +137,7 @@ public class LevelDBWorld implements World {
      */
     @Override
     public void invalidateChunkCache() {
-
+        chunkGrid.invalidateChunkCache();
     }
 
     /**
@@ -129,20 +148,20 @@ public class LevelDBWorld implements World {
      */
     @Override
     public void invalidateChunkCache(int x, int z) {
-
+        chunkGrid.invalidateChunkCache(x, z);
     }
 
     @Override
     public void iterateEntities(int minX, int minZ, int maxX, int maxZ, Consumer<Entity> entityConsumer) {
-
+        // 实现实体迭代，需要从LevelDB读取实体数据
+        // 这可能需要特定的LevelDB格式知识
     }
 
-    public static LevelDBWorld load(Path worldFolder, Key dimension) throws IOException, InterruptedException {
+    public static LevelDBWorld load(Path worldFolder, Key dimension) {
         // load level.dat
         var levelDat = worldFolder.resolve(FILE_LEVEL_DAT).toFile();
         if (!levelDat.exists()) {
-            // 不存在 level.dat
-            return null;
+            throw new WorldStorageException("level.dat not found!");
         }
 
         LevelDBData levelData;
@@ -154,9 +173,31 @@ public class LevelDBWorld implements World {
             NbtMap nbt = (NbtMap) readerLE.readTag();
             readerLE.close();
             levelData = new LevelDBData(nbt);
+        } catch (IOException e) {
+            throw new WorldStorageException(e);
         }
 
         // create world
         return new LevelDBWorld(worldFolder, dimension, levelData);
+    }
+    
+    /**
+     * LevelDB世界的区块加载器实现
+     */
+    private class LevelDBChunkLoader implements ChunkLoader<Chunk> {
+        
+        @Override
+        public Chunk loadChunk(int x, int z) throws IOException {
+            // 从LevelDB中加载区块数据并创建Chunk对象
+            // 这需要详细了解LevelDB区块格式
+            // 这里只是一个简单的占位实现
+            return new LevelDBChunk(x, z, db);
+        }
+        
+        @Override
+        public Chunk erroredChunk() {
+            // 返回一个表示错误的区块
+            return new LevelDBErrorChunk();
+        }
     }
 }
