@@ -66,7 +66,7 @@ spotless {
     java {
         target ("src/*/java/**/*.java")
 
-        licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
+//        licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
         indentWithSpaces()
         trimTrailingWhitespace()
     }
