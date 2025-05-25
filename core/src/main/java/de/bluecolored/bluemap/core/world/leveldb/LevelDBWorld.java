@@ -18,9 +18,12 @@ import org.iq80.leveldb.impl.Iq80DBFactory;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
-import java.util.List;
+import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -30,7 +33,7 @@ public class LevelDBWorld implements World {
 
     private final String id;
     private static final String FILE_LEVEL_DAT = "level.dat";
-    private static final String DIR_DB = "db";
+    private static final String DIR_DB = "db_";
 
     private final DimensionType dimensionType;
     private final Vector3i spawnPoint;
@@ -48,6 +51,7 @@ public class LevelDBWorld implements World {
                 levelData.getData().getSpawnY(),
                 levelData.getData().getSpawnZ()
         );
+        updateDbDirectory(worldFolder);
         var dbFolder = worldFolder.resolve(DIR_DB).toFile();
         try {
             if (!dbFolder.exists() && !dbFolder.mkdirs()) {
@@ -230,6 +234,55 @@ public class LevelDBWorld implements World {
         public Chunk erroredChunk() {
             // 返回一个表示错误的区块
             return new LevelDBErrorChunk();
+        }
+    }
+
+    private void updateDbDirectory(Path worldFolder) {
+        var sourceDb = worldFolder.resolve("db");
+        var targetDb = worldFolder.resolve("db_");
+
+        try {
+            if (!Files.exists(sourceDb) || !Files.isDirectory(sourceDb)) {
+                return;
+            }
+
+            // delete directory
+            if (Files.exists(targetDb)) {
+                try (var walk = Files.walk(targetDb)) {
+                    walk.sorted(Comparator.reverseOrder())
+                            .parallel()
+                            .forEach(path -> {
+                                try {
+                                    Files.deleteIfExists(path);
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException("Failed to delete: " + path, e);
+                                }
+                            });
+                }
+            }
+
+            // copy directory
+            try (var walk = Files.walk(sourceDb)) {
+                walk.parallel()
+                        .forEach(source -> {
+                            var target = targetDb.resolve(sourceDb.relativize(source));
+                            try {
+                                if (Files.isDirectory(source)) {
+                                    Files.createDirectories(target);
+                                } else {
+                                    Files.createDirectories(target.getParent());
+                                    Files.copy(source, target,
+                                            StandardCopyOption.REPLACE_EXISTING,
+                                            StandardCopyOption.COPY_ATTRIBUTES);
+                                }
+                            } catch (IOException e) {
+                                throw new UncheckedIOException("Failed to copy: " + source, e);
+                            }
+                        });
+            }
+
+        } catch (IOException | UncheckedIOException e) {
+            throw new WorldStorageException("Failed to copy database directory", e);
         }
     }
 }
