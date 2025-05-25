@@ -7,5 +7,4 @@ import de.bluecolored.bluemap.core.world.Chunk;
  * 所有方法都使用默认实现
  */
 public class LevelDBErrorChunk implements Chunk {
-    // 使用Chunk接口的默认实现，不需要添加任何代码
-} 
+}

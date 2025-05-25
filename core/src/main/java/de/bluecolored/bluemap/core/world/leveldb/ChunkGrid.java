@@ -38,7 +38,7 @@ public class ChunkGrid<T> {
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build(this::loadRegion);
-    
+
     private final LoadingCache<Vector2i, T> chunkCache = Caffeine.newBuilder()
             .executor(BlueMap.THREAD_POOL)
             .softValues()
